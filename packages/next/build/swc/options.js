@@ -61,7 +61,9 @@ function getBaseSWCOptions({
         legacyDecorator: enableDecorators,
         decoratorMetadata: emitDecoratorMetadata,
         react: {
-          importSource: jsConfig?.compilerOptions?.jsxImportSource || 'react',
+          importSource: nextConfig?.emotion?.enabled
+            ? '@emotion/react'
+            : jsConfig?.compilerOptions?.jsxImportSource || 'react',
           runtime: 'automatic',
           pragma: 'React.createElement',
           pragmaFrag: 'React.Fragment',
@@ -98,6 +100,37 @@ function getBaseSWCOptions({
     removeConsole: nextConfig?.compiler?.removeConsole,
     reactRemoveProperties: nextConfig?.compiler?.reactRemoveProperties,
     relay: nextConfig?.compiler?.relay,
+    emotion: getEmotionOptions(nextConfig, development),
+  }
+}
+
+function getEmotionOptions(nextConfig, development) {
+  if (
+    !nextConfig?.compiler?.emotion ||
+    !nextConfig?.compiler?.emotion?.enabled
+  ) {
+    return null
+  }
+  let autoLabel = false
+  switch (nextConfig?.compiler?.emotion?.autoLabel) {
+    case 'never':
+      autoLabel = false
+      break
+    case 'always':
+      autoLabel = true
+      break
+    case 'dev-only':
+    default:
+      autoLabel = !!development
+      break
+  }
+  return {
+    enabled: true,
+    autoLabel,
+    labelFormat: nextConfig?.compiler?.emotion?.labelFormat,
+    sourcemap: development
+      ? nextConfig?.compiler?.emotion?.sourceMap ?? true
+      : false,
   }
 }
 
